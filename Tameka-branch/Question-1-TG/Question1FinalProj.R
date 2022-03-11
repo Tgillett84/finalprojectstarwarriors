@@ -30,16 +30,6 @@ Cancer$NameR[Cancer$Name=='Vagina'] <- 4
 Cancer$NameR[Cancer$Name=='Vulva'] <- 5
 Cancer$NameR[Cancer$Name=='Other Female Genital Organs'] <- 6
 
-Cancer$NameR <- NA
-
-Cancer$NameR[Cancer$Name=='Cervix Uteri'] <- 0
-Cancer$NameR[Cancer$Name=='Corpus Uteri'] <- 1
-Cancer$NameR[Cancer$Name=='Uterus, NOS'] <- 2
-Cancer$NameR[Cancer$Name=='Ovary'] <- 3
-Cancer$NameR[Cancer$Name=='Vagina'] <- 4
-Cancer$NameR[Cancer$Name=='Vulva'] <- 5
-Cancer$NameR[Cancer$Name=='Other Female Genital Organs'] <- 6
-
 library(plyr)
 # This rename code works for data in a column
 
@@ -50,6 +40,128 @@ Cancer$Race[Cancer$Race == "Other Races and Unknown combined"] <- "Other"
 Cancer$Race[Cancer$Race == "Asian or Pacific Islander"] <- "AsianAmer"
 
 glimpse(Cancer)
+
+summary(Cancer)
+
+CancerPovPerOver20 <- filter(Cancer, 'Poverty%' > 20)
+CancerPovPerOver20
+
+CancerPovPerUnder9 <- filter(Cancer, 'Poverty%' < 9)
+CancerPovPerUnder9
+
+# Box Plot
+
+boxplot(Cancer$Race, main="Box plot", ylab="Poverty%")
+
+# Have to make race numeric for boxplot to work
+
+unique(Cancer$Race)
+Cancer$RaceR <- NA
+
+Cancer$RaceR[Cancer$Race=="NativeAmer"]<-0
+Cancer$RaceR[Cancer$Race=="AfricanAmer"]<-1
+Cancer$RaceR[Cancer$Race=="Caucasian"]<-2
+Cancer$RaceR[Cancer$Race=="Other"]<-3
+Cancer$RaceR[Cancer$Race=="AsianAmer"]<-4
+
+# Basic Graphs
+
+boxplot(Cancer$RaceR, main="Box plot", ylab="Poverty%")
+
+hist(Cancer$RaceR)
+hist(Cancer$`Poverty%`)
+
+# Histogram with 12 Bins
+hist(Cancer$`Poverty%`,
+     breaks=12,
+     col="red",
+     xlab="Poverty Population %",
+     main="Colored histogram with 12 bins")
+
+# Histogram with Rug Plot and Density Curve
+hist(Cancer$`Poverty%`,
+     freq = FALSE,
+     breaks = 12,
+     col = "red",
+     xlab = "Histogram, Rug Plot, Density Curve")
+rug(jitter(Cancer$`Poverty%`))
+lines(density(Cancer$`Poverty%`), col = "blue", lwd=2)
+
+# Histogram with Normal Curve and Box
+x <- Cancer$`Poverty%`
+h <- hist(x,
+          breaks=12,
+          col="red",
+          xlab="Histogram with Normal Curve and Box")
+xfit <- seq(min(x), max(x), length=40)
+yfit<-dnorm(xfit, mean=mean(x), sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="blue", lwd=2)
+box()
+
+# Boxplot
+
+head(Cancer)
+
+d2 <- ggplot(Cancer, aes(x = "RaceR", y = "Poverty%"))
+d2 + geom_boxplot() + xlab("")
+
+d2 <- ggplot(Cancer, aes(x = "", y = "RaceR"))
+d2 + geom_boxplot() + xlab("")
+
+# Descriptive Statistics
+
+myvars <- c("RaceR", "Poverty%")
+head(Cancer[myvars])
+summary(Cancer[myvars])
+
+mystats <- function(x, na.omit=FALSE){
+  if(na.omit)
+    x <- x[!is.na(x)]
+  m <- mean(x)
+  n <- length(x)
+  s <- sd(x)
+  skew <- sum((x-m)^3/s^3)/n
+  kurt <- sum((x-m)^4/s^4)/n-3
+  return(c(n=n, mean=m, stdev=s, skew=skew, kurtosis=kurt))
+}
+
+myvars <- c("RaceR", "Poverty%")
+sapply(Cancer[myvars], mystats, na.omit=TRUE)
+
+summary(Cancer$State)
+Cancer[c("State")]
+glimpse(Cancer)
+
+unique(Cancer$State)
+StateR <- as.numeric(State)
+StateR
+
+myvars <- names(Cancer) %in% c("RaceR.f", "Poverty%.f")
+Cancer2 <- Cancer[!myvars]
+
+StateR <- c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
+            "District of Columbia", "Georgia", "Idaho", "Indiana", "Kansas", "Louisiana", "Maryland",
+            "Michigan", "Mississippi", "Montana", "Nevada", "New Jersey", "New York", "North Dakota",
+            "Oklahoma", "Pennsylvania", "South Carolina", "Tennessee", "Utah", "Virginia", "West Virginia", 
+            "Wyoming", "Delaware", "Florida", "Hawaii", "Illinois", "Iowa", "Kentucky", "Maine", "Massachusetts",
+            "Minnesota", "Missouri", "Nebraska", "New Hampshire", "New Mexico", "North Carolina", "Ohio",
+            "Oregon", "Rhode Island", "South Dakota", "Texas", "Vermont", "Washington", "Wisconsin"
+            )
+unique(Cancer$RaceR)
+RaceR2 <- c(0, 1, 2, 3, 4)
+unique(Cancer$`Poverty%`)
+
+PovPerR <- c(18.4, 10.1, 17.7, 18.8, 15.8, 12.2, 10.4, 12.0, 17.9, 16.1, 17.8, 10.8, 15.2, 14.0, 15.0, 12.3, 13.3, 19.7, 13.5, 9.9, 11.4, 16.3, 22.3, 15.3, 14.9, 12.4, 8.5, 10.9, 20.9, 15.5, 16.8, 11.2, 15.4, 16.5, 15.7, 13.8, 17.2, 16.7, 11.7, 11.6, 12.7)
+
+Cancer3 <- data.frame(RaceR2, StateR, PovPerR)
+
+glimpse(Cancer2)
+
+Pov_num <- as.numeric(PovPerR)
+Pov_num
+
+print(State)
 
 Cancer$StateR <- NA
 
@@ -105,23 +217,11 @@ Cancer$StateR[Cancer$State=='Vermont'] <- 48
 Cancer$StateR[Cancer$State=='Washington'] <- 49
 Cancer$StateR[Cancer$State=='Wisconsin'] <- 50
 
-unique(Cancer$Race)
-Cancer$RaceR <- NA
-
-Cancer$RaceR[Cancer$Race=="NativeAmer"]<-0
-Cancer$RaceR[Cancer$Race=="AfricanAmer"]<-1
-Cancer$RaceR[Cancer$Race=="Caucasian"]<-2
-Cancer$RaceR[Cancer$Race=="Other"]<-3
-Cancer$RaceR[Cancer$Race=="AsianAmer"]<-4
-
 Cancer2 <- Cancer[, 5:11]
 head(Cancer2, n=10)
 
-# Initial Data View
-head(CancerCombinedFile3)
+# Export new data into excel spreadsheet
+library(xlsx)
+write.xlsx(Cancer, "Cancer.xlsx")
 
-# 2nd Wrangled Data View
-head(Cancer)
 
-#3rd Wrangled Data View
-head(Cancer2)
